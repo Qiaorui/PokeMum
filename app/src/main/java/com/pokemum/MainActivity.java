@@ -1,17 +1,33 @@
 package com.pokemum;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class MainActivity extends ActionBarActivity {
+public class    MainActivity extends ActionBarActivity {
+
+    public static final String SYSTEM_INFO = "system info";
+    public static final String IS_SIGNED_IN = "is signed-in";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        SharedPreferences preferences = getSharedPreferences(SYSTEM_INFO,MODE_PRIVATE);
+        if (preferences.getBoolean(IS_SIGNED_IN,false)) {
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.container, new MainFragment()).commit();
+            }
+        } else {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
     }
 
 
@@ -36,4 +52,8 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
+
+
 }
