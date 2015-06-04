@@ -97,5 +97,6 @@ public class FetchArtworkTask extends AsyncTask<Void, Void, String[]> {
             // New data is back from the server.  Hooray!
         }
     }
+
 }
 

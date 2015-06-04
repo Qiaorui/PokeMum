@@ -1,10 +1,14 @@
 package com.pokemum;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,12 +20,15 @@ import android.view.ViewGroup;
 import android.support.v4.app.Fragment;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import com.pokemum.SlideCutListView.RemoveDirection;
 import com.pokemum.SlideCutListView.RemoveListener;
@@ -112,6 +119,40 @@ public class MainFragment extends Fragment implements RemoveListener {
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
+
+    private void searchByTitle(String title) {
+        SearchByTitleTask task = new SearchByTitleTask(getActivity(), artworkAdapter);
+        task.execute(title);
+    }
+
+    private void searchByAuthor(String author) {
+        SearchByAuthorTask task = new SearchByAuthorTask(getActivity(), artworkAdapter);
+        task.execute(author);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Button button = (Button)getActivity().findViewById(R.id.seach_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (searchTypeSelected) {
+                    case MuseumContract.ObraEntry.COLUMN_AUTOR:
+                        searchByAuthor(((EditText) getActivity().findViewById(R.id.search_text)).getText().toString());
+                        break;
+                    case MuseumContract.ObraEntry.COLUMN_TITULO:
+                        searchByTitle(((EditText) getActivity().findViewById(R.id.search_text)).getText().toString());
+                        break;
+                }
+                Toast.makeText(getActivity(),
+                        "searching " + ((EditText) getActivity().findViewById(R.id.search_text)).getText().toString(),
+                        Toast.LENGTH_SHORT).show();
+
+            }
+        });
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -157,22 +198,129 @@ public class MainFragment extends Fragment implements RemoveListener {
                 new String[]{id}
                 );
         updateData();
-        //adapter.remove(adapter.getItem(position));
-        switch (direction) {
-            case RIGHT:
-                Toast.makeText(getActivity(), "向右删除  "+ position, Toast.LENGTH_SHORT).show();
-                break;
-            case LEFT:
-                Toast.makeText(getActivity(), "向左删除  "+ position, Toast.LENGTH_SHORT).show();
-                break;
-
-            default:
-                break;
-        }
-
 
     }
 
+
+
+    private String[] convertContenToUXFormat(Vector<ContentValues> cv) {
+        String[] result = new String[cv.size()];
+        for (int i = 0; i < cv.size(); i++) {
+            ContentValues artworkValues = cv.elementAt(i);
+            result[i] = "(" + artworkValues.getAsString(MuseumContract.ObraEntry._ID) + ")  " +
+                    artworkValues.getAsString(MuseumContract.ObraEntry.COLUMN_TITULO) + "      " +
+                    artworkValues.getAsString(MuseumContract.ObraEntry.COLUMN_AUTOR) + "      S." +
+                    artworkValues.getAsString(MuseumContract.ObraEntry.COLUMN_PERIODO_HISTORICO);
+        }
+        return result;
+
+    }
+
+
+    private class SearchByAuthorTask extends AsyncTask<String, Void, String[]> {
+
+        private ArrayAdapter<String> mArtworkAdapter;
+        private final Context mContext;
+
+        public SearchByAuthorTask(Context context, ArrayAdapter<String> artworkAdapter) {
+            mContext = context;
+            mArtworkAdapter = artworkAdapter;
+        }
+
+        @Override
+        protected String[] doInBackground(String... params) {
+            Cursor obraCursor = mContext.getContentResolver().query(
+                    MuseumContract.ObraEntry.CONTENT_URI,
+                    new String[]{MuseumContract.ObraEntry._ID, MuseumContract.ObraEntry.COLUMN_TITULO, MuseumContract.ObraEntry.COLUMN_AUTOR, MuseumContract.ObraEntry.COLUMN_PERIODO_HISTORICO},
+                    MuseumContract.ObraEntry.COLUMN_AUTOR + " = ?",
+                    new String[]{params[0]},
+                    MuseumContract.ObraEntry.COLUMN_TITULO+ " ASC");
+            String[] result = null;
+            Vector<ContentValues> vector = new Vector<>(obraCursor.getCount());
+            if (obraCursor.moveToFirst()) {
+                do {
+                    ContentValues contentValues = new ContentValues();
+                    DatabaseUtils.cursorRowToContentValues(obraCursor, contentValues);
+                    vector.add(contentValues);
+                } while (obraCursor.moveToNext());
+
+                result = convertContenToUXFormat(vector);
+            }
+
+
+            obraCursor.close();
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            if (result != null && mArtworkAdapter != null) {
+                mArtworkAdapter.clear();
+                for(String artwork : result) {
+                    mArtworkAdapter.add(artwork);
+                }
+                // New data is back from the server.  Hooray!
+            } else {
+                Toast.makeText(getActivity(),
+                        "Artwork not found",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    private class SearchByTitleTask extends AsyncTask<String, Void, String[]> {
+
+        private ArrayAdapter<String> mArtworkAdapter;
+        private final Context mContext;
+
+        public SearchByTitleTask(Context context, ArrayAdapter<String> artworkAdapter) {
+            mContext = context;
+            mArtworkAdapter = artworkAdapter;
+        }
+
+        @Override
+        protected String[] doInBackground(String... params) {
+            Cursor obraCursor = mContext.getContentResolver().query(
+                    MuseumContract.ObraEntry.CONTENT_URI,
+                    new String[]{MuseumContract.ObraEntry._ID, MuseumContract.ObraEntry.COLUMN_TITULO, MuseumContract.ObraEntry.COLUMN_AUTOR, MuseumContract.ObraEntry.COLUMN_PERIODO_HISTORICO},
+                    MuseumContract.ObraEntry.COLUMN_TITULO + " = ?",
+                    new String[]{params[0]},
+                    MuseumContract.ObraEntry.COLUMN_TITULO+ " ASC");
+            String[] result = null;
+            Vector<ContentValues> vector = new Vector<>(obraCursor.getCount());
+            if (obraCursor.moveToFirst()) {
+                do {
+                    ContentValues contentValues = new ContentValues();
+                    DatabaseUtils.cursorRowToContentValues(obraCursor, contentValues);
+                    vector.add(contentValues);
+                } while (obraCursor.moveToNext());
+
+                result = convertContenToUXFormat(vector);
+            }
+
+
+            obraCursor.close();
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            if (result != null && mArtworkAdapter != null) {
+                mArtworkAdapter.clear();
+                for(String artwork : result) {
+                    mArtworkAdapter.add(artwork);
+                }
+                // New data is back from the server.  Hooray!
+            } else {
+                Toast.makeText(getActivity(),
+                        "Artwork not found",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
 
 }

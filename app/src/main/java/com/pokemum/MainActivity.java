@@ -1,5 +1,6 @@
 package com.pokemum;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
@@ -55,10 +56,9 @@ public class    MainActivity extends ActionBarActivity {
     }
 
 
+
     public void click(View view) {
         switch (view.getId()) {
-            case R.id.seach_button:
-                break;
             case R.id.new_artwork_button:
                 Intent intent = new Intent(this, ArtworkActivity.class);
                 intent.putExtra("action","new");
