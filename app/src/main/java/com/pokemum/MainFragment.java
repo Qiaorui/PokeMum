@@ -13,13 +13,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.app.Fragment;
-
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class MainFragment extends Fragment {
 
     public static final String SYSTEM_INFO = "system info";
     public static final String IS_SIGNED_IN = "is signed-in";
+    private Spinner spinner;
+    private String searchType;
+    private ArrayAdapter<String> adapter;
+    private static final String[] SEARCH_TYPE = {"Author","Title"};
 
     public MainFragment() {
         // Required empty public constructor
@@ -29,8 +37,31 @@ public class MainFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        spinner = (Spinner)getActivity().findViewById(R.id.spinner);
+        adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, SEARCH_TYPE);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                searchType = adapter.getItem(position);
+                Toast toast = Toast.makeText(getActivity(), "serach type: " + searchType, Toast.LENGTH_SHORT);
+                toast.show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spinner.setSelection(1);
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
