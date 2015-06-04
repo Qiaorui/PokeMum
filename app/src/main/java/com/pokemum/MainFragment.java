@@ -19,8 +19,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
 
-public class MainFragment extends Fragment {
+import com.pokemum.SlideCutListView.RemoveDirection;
+import com.pokemum.SlideCutListView.RemoveListener;
+import android.widget.AdapterView.OnItemClickListener;
+
+public class MainFragment extends Fragment implements RemoveListener {
 
     public static final String SYSTEM_INFO = "system info";
     public static final String IS_SIGNED_IN = "is signed-in";
@@ -28,6 +34,8 @@ public class MainFragment extends Fragment {
     private String searchType;
     private ArrayAdapter<String> adapter;
     private static final String[] SEARCH_TYPE = {"Author","Title"};
+    private ArrayAdapter<String> artworkAdapter;
+    private SlideCutListView slideCutListView;
 
     public MainFragment() {
         // Required empty public constructor
@@ -61,6 +69,30 @@ public class MainFragment extends Fragment {
             }
         });
         spinner.setSelection(1);
+        init();
+    }
+
+    private void updateData() {
+        FetchArtworkTask fetchArtworkTask = new FetchArtworkTask(getActivity(),artworkAdapter);
+        fetchArtworkTask.execute();
+    }
+
+    private void init() {
+        slideCutListView = (SlideCutListView) getActivity().findViewById(R.id.slideCutListView);
+        slideCutListView.setRemoveListener(this);
+
+        artworkAdapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_artwork_xml, R.id.list_item);
+        updateData();
+        slideCutListView.setAdapter(artworkAdapter);
+
+        slideCutListView.setOnItemClickListener(new OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+            }
+        });
     }
 
     @Override
@@ -94,6 +126,23 @@ public class MainFragment extends Fragment {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void removeItem(RemoveDirection direction, int position) {
+        adapter.remove(adapter.getItem(position));
+        switch (direction) {
+            case RIGHT:
+                Toast.makeText(getActivity(), "向右删除  "+ position, Toast.LENGTH_SHORT).show();
+                break;
+            case LEFT:
+                Toast.makeText(getActivity(), "向左删除  "+ position, Toast.LENGTH_SHORT).show();
+                break;
+
+            default:
+                break;
+        }
+
     }
 
 }
