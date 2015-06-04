@@ -6,5 +6,8 @@
     <string name="register">Register</string>
     <string name="sign_in">Sign in</string>
     <string name="username">username</string>
+    <string name="title_activity_artwork">ArtworkActivity</string>
+
+    <string name="hello_world">Hello world!</string>
 
 </resources>

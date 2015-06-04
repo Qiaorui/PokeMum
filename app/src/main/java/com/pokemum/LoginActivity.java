@@ -129,6 +129,7 @@ public class LoginActivity extends Activity {
                     editor.commit();
                     Intent intent = new Intent(this, MainActivity.class);
                     startActivity(intent);
+                    finish();
                 } else {
                     Toast toast = Toast.makeText(getApplicationContext(),"wrong username or password",Toast.LENGTH_SHORT);
                     toast.show();

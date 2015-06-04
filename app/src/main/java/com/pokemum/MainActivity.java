@@ -6,6 +6,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 
 public class    MainActivity extends ActionBarActivity {
@@ -53,6 +54,19 @@ public class    MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+    public void click(View view) {
+        switch (view.getId()) {
+            case R.id.seach_button:
+                break;
+            case R.id.new_artwork_button:
+                Intent intent = new Intent(this, ArtworkActivity.class);
+                intent.putExtra("action","new");
+                startActivity(intent);
+                break;
+        }
+
+    }
 
 
 
