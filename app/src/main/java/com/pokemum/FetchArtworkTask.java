@@ -52,8 +52,9 @@ public class FetchArtworkTask extends AsyncTask<Void, Void, String[]> {
         String[] result = new String[cv.size()];
         for (int i = 0; i < cv.size(); i++) {
             ContentValues artworkValues = cv.elementAt(i);
-            result[i] = artworkValues.getAsString(ObraEntry.COLUMN_TITULO) + ", " +
-                    artworkValues.getAsString(ObraEntry.COLUMN_AUTOR) + ", S." +
+            result[i] = "(" + artworkValues.getAsString(ObraEntry._ID) + ")  " +
+                    artworkValues.getAsString(ObraEntry.COLUMN_TITULO) + "      " +
+                    artworkValues.getAsString(ObraEntry.COLUMN_AUTOR) + "      S." +
                     artworkValues.getAsString(ObraEntry.COLUMN_PERIODO_HISTORICO);
         }
         return result;

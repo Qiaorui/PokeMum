@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +25,8 @@ import java.util.List;
 
 import com.pokemum.SlideCutListView.RemoveDirection;
 import com.pokemum.SlideCutListView.RemoveListener;
+import com.pokemum.dataLayer.MuseumContract;
+
 import android.widget.AdapterView.OnItemClickListener;
 
 public class MainFragment extends Fragment implements RemoveListener {
@@ -31,9 +34,9 @@ public class MainFragment extends Fragment implements RemoveListener {
     public static final String SYSTEM_INFO = "system info";
     public static final String IS_SIGNED_IN = "is signed-in";
     private Spinner spinner;
-    private String searchType;
+    private String searchTypeSelected;
     private ArrayAdapter<String> adapter;
-    private static final String[] SEARCH_TYPE = {"Author","Title"};
+    private static final String[] SEARCH_TYPE = {MuseumContract.ObraEntry.COLUMN_AUTOR,MuseumContract.ObraEntry.COLUMN_TITULO};
     private ArrayAdapter<String> artworkAdapter;
     private SlideCutListView slideCutListView;
 
@@ -58,8 +61,8 @@ public class MainFragment extends Fragment implements RemoveListener {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                searchType = adapter.getItem(position);
-                Toast toast = Toast.makeText(getActivity(), "serach type: " + searchType, Toast.LENGTH_SHORT);
+                searchTypeSelected = adapter.getItem(position);
+                Toast toast = Toast.makeText(getActivity(), "serach type: " + searchTypeSelected, Toast.LENGTH_SHORT);
                 toast.show();
             }
 
@@ -69,6 +72,7 @@ public class MainFragment extends Fragment implements RemoveListener {
             }
         });
         spinner.setSelection(1);
+        searchTypeSelected = MuseumContract.ObraEntry.COLUMN_TITULO;
         init();
     }
 
@@ -104,6 +108,7 @@ public class MainFragment extends Fragment implements RemoveListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        updateData();
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
@@ -128,9 +133,31 @@ public class MainFragment extends Fragment implements RemoveListener {
         return super.onOptionsItemSelected(item);
     }
 
+
+    private String parseId(String s) {
+        String result = "";
+        boolean initFlag = false;
+        boolean finishFlag = false;
+        for (int i = 0; i < s.length() && !finishFlag; i++) {
+            if (s.charAt(i) == ')') finishFlag =true;
+            if (initFlag && !finishFlag) result += s.charAt(i);
+            if (s.charAt(i)== '(') initFlag = true;
+
+        }
+        return result;
+    }
+
     @Override
     public void removeItem(RemoveDirection direction, int position) {
-        adapter.remove(adapter.getItem(position));
+        String id = parseId(artworkAdapter.getItem(position));
+        Log.v("remove","id:"+id);
+        getActivity().getContentResolver().delete(
+                MuseumContract.ObraEntry.CONTENT_URI,
+                MuseumContract.ObraEntry._ID + " = ?",
+                new String[]{id}
+                );
+        updateData();
+        //adapter.remove(adapter.getItem(position));
         switch (direction) {
             case RIGHT:
                 Toast.makeText(getActivity(), "向右删除  "+ position, Toast.LENGTH_SHORT).show();
