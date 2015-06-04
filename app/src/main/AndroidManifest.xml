@@ -33,6 +33,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.pokemum.MainActivity" />
         </activity>
+        <activity
+            android:name=".ShowArtworkActivity"
+            android:label="@string/title_activity_show_artwork"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pokemum.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

@@ -9,5 +9,6 @@
     <string name="title_activity_artwork">ArtworkActivity</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_show_artwork">ShowArtworkActivity</string>
 
 </resources>

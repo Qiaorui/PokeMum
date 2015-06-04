@@ -101,7 +101,10 @@ public class MainFragment extends Fragment implements RemoveListener {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-
+                Intent intent = new Intent(getActivity(), ArtworkActivity.class);
+                intent.putExtra("action","modify");
+                intent.putExtra("id",parseId(artworkAdapter.getItem(position)));
+                startActivity(intent);
             }
         });
     }
