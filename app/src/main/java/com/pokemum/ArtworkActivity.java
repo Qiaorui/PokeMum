@@ -129,13 +129,17 @@ public class ArtworkActivity extends ActionBarActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        ((EditText)findViewById(R.id.title_text)).setText(cv.getAsString(ObraEntry.COLUMN_TITULO));
-        ((EditText)findViewById(R.id.author_text)).setText(cv.getAsString(ObraEntry.COLUMN_AUTOR));
-        ((EditText)findViewById(R.id.branch_text)).setText(cv.getAsString(ObraEntry.COLUMN_RAMA_ARTISTICO));
-        ((EditText)findViewById(R.id.year_creation_text)).setText(cv.getAsString(ObraEntry.COLUMN_ANO_CREACION));
-        ((EditText)findViewById(R.id.year_acquisition_text)).setText(cv.getAsString(ObraEntry.COLUMN_ANO_ADQUISICION));
-        ((EditText)findViewById(R.id.period_text)).setText(cv.getAsString(ObraEntry.COLUMN_PERIODO_HISTORICO));
-        ((EditText)findViewById(R.id.description_text)).setText(cv.getAsString(ObraEntry.COLUMN_DESCRIPCION));
+        if (action.equals("modify")) {
+
+            ((EditText)findViewById(R.id.title_text)).setText(cv.getAsString(ObraEntry.COLUMN_TITULO));
+            ((EditText)findViewById(R.id.author_text)).setText(cv.getAsString(ObraEntry.COLUMN_AUTOR));
+            ((EditText)findViewById(R.id.branch_text)).setText(cv.getAsString(ObraEntry.COLUMN_RAMA_ARTISTICO));
+            ((EditText)findViewById(R.id.year_creation_text)).setText(cv.getAsString(ObraEntry.COLUMN_ANO_CREACION));
+            ((EditText)findViewById(R.id.year_acquisition_text)).setText(cv.getAsString(ObraEntry.COLUMN_ANO_ADQUISICION));
+            ((EditText)findViewById(R.id.period_text)).setText(cv.getAsString(ObraEntry.COLUMN_PERIODO_HISTORICO));
+            ((EditText)findViewById(R.id.description_text)).setText(cv.getAsString(ObraEntry.COLUMN_DESCRIPCION));
+
+        }
     }
 
     @Override
