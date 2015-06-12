@@ -1,15 +1,14 @@
 package com.pokemum;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,24 +16,19 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v4.app.Fragment;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 
 import com.pokemum.SlideCutListView.RemoveDirection;
 import com.pokemum.SlideCutListView.RemoveListener;
 import com.pokemum.dataLayer.MuseumContract;
 
-import android.widget.AdapterView.OnItemClickListener;
+import java.util.Vector;
 
 public class MainFragment extends Fragment implements RemoveListener {
 
@@ -83,7 +77,7 @@ public class MainFragment extends Fragment implements RemoveListener {
         init();
     }
 
-    private void updateData() {
+    public void updateData() {
         FetchArtworkTask fetchArtworkTask = new FetchArtworkTask(getActivity(),artworkAdapter);
         fetchArtworkTask.execute();
     }
@@ -102,8 +96,8 @@ public class MainFragment extends Fragment implements RemoveListener {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 Intent intent = new Intent(getActivity(), ArtworkActivity.class);
-                intent.putExtra("action","modify");
-                intent.putExtra("id",parseId(artworkAdapter.getItem(position)));
+                intent.putExtra("action", "modify");
+                intent.putExtra("id", parseId(artworkAdapter.getItem(position)));
                 startActivity(intent);
             }
         });
@@ -202,6 +196,10 @@ public class MainFragment extends Fragment implements RemoveListener {
                 );
         updateData();
 
+    }
+
+    public void removeAllItems(){
+        artworkAdapter.clear();
     }
 
 

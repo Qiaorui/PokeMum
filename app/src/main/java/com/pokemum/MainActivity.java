@@ -1,5 +1,7 @@
 package com.pokemum;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -11,6 +13,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+
+import com.pokemum.dataLayer.MuseumContract;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,7 +42,7 @@ public class MainActivity extends ActionBarActivity {
         if (preferences.getBoolean(IS_SIGNED_IN,false)) {
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                        .add(R.id.container, new MainFragment()).commit();
+                        .add(R.id.container, new MainFragment(), "main_fragment").commit();
             }
         } else {
             Intent intent = new Intent(this, LoginActivity.class);
@@ -80,16 +84,21 @@ public class MainActivity extends ActionBarActivity {
                 break;
             case R.id.populate_button:
                 Toast.makeText(getApplicationContext(), "Fetching artworks from web app", Toast.LENGTH_SHORT);
-                PupulateDBTask weatherTask = new PupulateDBTask();
-                weatherTask.execute();
+                PopulateDBTask populateDBTask = new PopulateDBTask();
+                populateDBTask.execute("populate");
+                break;
+            case R.id.empty_button:
+                Toast.makeText(getApplicationContext(), "Emptying DB", Toast.LENGTH_SHORT);
+                PopulateDBTask emptyDBTask = new PopulateDBTask();
+                emptyDBTask.execute("empty");
                 break;
         }
 
     }
 
-    public class PupulateDBTask extends AsyncTask<String, Void, String[]> {
+    public class PopulateDBTask extends AsyncTask<String, Void, String[]> {
 
-        private final String LOG_TAG = PupulateDBTask.class.getSimpleName();
+        private final String LOG_TAG = PopulateDBTask.class.getSimpleName();
 
         /**
          * Take the String representing the complete forecast in JSON Format and
@@ -102,7 +111,6 @@ public class MainActivity extends ActionBarActivity {
                 throws JSONException {
 
             // These are the names of the JSON objects that need to be extracted.
-            final String PJSON_LIST = "list";
             final String PJSON_ID = "id";
             final String PJSON_TITULO = "titulo";
             final String PJSON_AUTOR = "autor";
@@ -124,6 +132,7 @@ public class MainActivity extends ActionBarActivity {
 
                 // Get the JSON object representing the day
                 JSONObject obra = obrasArray.getJSONObject(i);
+                if (obra == null) continue;
 
                 String id = obra.getString(PJSON_ID);
                 String titulo = obra.getString(PJSON_TITULO);
@@ -134,6 +143,24 @@ public class MainActivity extends ActionBarActivity {
                 String url = obra.getString(PJSON_URL);
 
                 resultStrs[i] = id + " - " + titulo + " - " + autor + " - " + tipo + " - " + ano + " - " + estilo + " - " + url;
+
+                ContentValues artworkValues = new ContentValues();
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_TITULO,titulo);
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_AUTOR,autor);
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_PERIODO_HISTORICO,"Renacentismo");
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_ANO_ADQUISICION,"1900");
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_ANO_CREACION,ano);
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_ESTILO_ARTISTICO,estilo);
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_TIPO,tipo);
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_RAMA_ARTISTICO, "random");
+                artworkValues.put(MuseumContract.ObraEntry.COLUMN_DESCRIPCION, "Una descripción de la obra.");
+
+                Uri insertedUri = getContentResolver().insert(
+                        MuseumContract.ObraEntry.CONTENT_URI,
+                        artworkValues);
+                long artworkId = ContentUris.parseId(insertedUri);
+                Log.v("artworkActity", "new artwork_id:" + artworkId + " and title: " + titulo);
+
             }
 
             for (String s : resultStrs) {
@@ -155,71 +182,84 @@ public class MainActivity extends ActionBarActivity {
             // Will contain the raw JSON response as a string.
             String obrasJsonStr = null;
 
-            String format = "json";
-            int numDays = 7;
+            int numObras = 7;
 
-            try {
-                // Construct the URL for the OpenWeatherMap query
-                // Possible parameters are avaiable at OWM's forecast API page, at
-                // http://openweathermap.org/API#forecast
-                final String FORECAST_BASE_URL = "https://pocket-museum.herokuapp.com/obras.json";
+            if (params[0].equals("populate")) {
+                try {
+                    final String OBRAS_BASE_URL = "https://pocket-museum.herokuapp.com/obras.json";
 
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .build();
+                    Uri builtUri = Uri.parse(OBRAS_BASE_URL).buildUpon()
+                            .build();
 
-                URL url = new URL(builtUri.toString());
+                    URL url = new URL(builtUri.toString());
 /*
                 Log.v(LOG_TAG, "Built URI: " + builtUri);
 */
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
+                    // Create the request to OpenWeatherMap, and open the connection
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.connect();
 
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
+                    // Read the input stream into a String
+                    InputStream inputStream = urlConnection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+                    if (inputStream == null) {
+                        // Nothing to do.
+                        return null;
+                    }
+                    reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                        // But it does make debugging a *lot* easier if you print out the completed
+                        // buffer for debugging.
+                        buffer.append(line + "\n");
+                    }
+
+                    if (buffer.length() == 0) {
+                        // Stream was empty.  No point in parsing.
+                        return null;
+                    }
+                    obrasJsonStr = buffer.toString();
+                    Log.v(LOG_TAG, "Obras JSON string: " + obrasJsonStr);
+
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Error ", e);
+                    // If the code didn't successfully get the weather data, there's no point in attemping
+                    // to parse it.
                     return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                obrasJsonStr = buffer.toString();
-                Log.v(LOG_TAG, "Obras JSON string: " + obrasJsonStr);
-
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } finally{
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (final IOException e) {
+                            Log.e(LOG_TAG, "Error closing stream", e);
+                        }
                     }
                 }
             }
 
             try {
-                return getObrasDataFromJson(obrasJsonStr, numDays);
+                if (params[0].equals("populate")) {
+                    String[] ret = getObrasDataFromJson(obrasJsonStr, numObras);
+                    updateFragment();
+                    return ret;
+                } else if (params[0].equals("empty")){
+                    Uri uri = Uri.parse(MuseumContract.BASE_CONTENT_URI + "/" + MuseumContract.PATH_OBRA);
+                    getContentResolver().delete(uri, null, null);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            emptyFragment();
+                        }
+                    });
+                    return new String[] {"deleted"};
+                }
+
             }
             catch (JSONException e){
                 Log.e(LOG_TAG, e.getMessage(), e);
@@ -229,6 +269,17 @@ public class MainActivity extends ActionBarActivity {
             return null;
         }
 
+        private void updateFragment(){
+            MainFragment mainFragment = (MainFragment) getSupportFragmentManager().findFragmentByTag("main_fragment");
+            mainFragment.updateData();
+            Log.v(LOG_TAG, "Updated fragment");
+        }
+
+        private void emptyFragment(){
+            MainFragment mainFragment = (MainFragment) getSupportFragmentManager().findFragmentByTag("main_fragment");
+            mainFragment.removeAllItems();
+            Log.v(LOG_TAG, "Emptied fragment");
+        }
     }
 
 
