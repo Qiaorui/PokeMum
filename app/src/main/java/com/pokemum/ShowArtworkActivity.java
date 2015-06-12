@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import com.pokemum.dataLayer.MuseumContract;
 import com.pokemum.dataLayer.MuseumProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -52,7 +54,7 @@ public class ShowArtworkActivity extends ActionBarActivity {
         });
 
         MuseumProvider mp = new MuseumProvider();
-        List<Integer> ids = mp.getAllIds();
+        List<Integer> ids = getAllIds();
         int randomNum = rand.nextInt(((ids.size()-1) - MIN_SQLITE_ID) + 1) + MIN_SQLITE_ID;
 
         String randomNumStr = ids.get(randomNum).toString();
@@ -104,5 +106,29 @@ public class ShowArtworkActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public List<Integer> getAllIds() {
+
+        List<Integer> results = new ArrayList<Integer>();
+
+        String[] columns = {MuseumContract.ObraEntry._ID}; // name of the column
+
+        Cursor cursor = this.getContentResolver().query(MuseumContract.ObraEntry.CONTENT_URI,
+                columns,
+                null,
+                null,
+                null,
+                null);
+
+        int iId = cursor.getColumnIndex(MuseumContract.ObraEntry._ID);
+
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            Integer rowId = cursor.getInt(0);
+            results.add(rowId);
+        }
+        cursor.close();
+
+        return results;
     }
 }

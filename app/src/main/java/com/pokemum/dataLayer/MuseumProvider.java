@@ -252,35 +252,5 @@ public class MuseumProvider extends ContentProvider {
         super.shutdown();
     }
 
-    public List<Integer> getAllIds() {
 
-        List<Integer> results = new ArrayList<Integer>();
-        final SQLiteDatabase db;
-
-        try {
-            db = mOpenHelper.getWritableDatabase();
-        } catch (Exception e) {
-            Log.w(LOG_TAG, "getAllIds => Null pointer!!!!!");
-            e.printStackTrace();
-            results.add(new Integer(1));
-            results.add(new Integer(1));
-            return results;
-        }
-
-        String[] columns = {MuseumContract.ObraEntry._ID}; // name of the column
-
-        Cursor cursor = db.query(MuseumContract.ObraEntry.TABLE_NAME, columns, null, null, null, null, null);
-
-        int iId = cursor.getColumnIndex(MuseumContract.ObraEntry._ID);
-
-        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            Integer rowId = cursor.getInt(0);
-            results.add(rowId);
-        }
-
-        cursor.close();
-        db.close();
-
-        return results;
-    }
 }
