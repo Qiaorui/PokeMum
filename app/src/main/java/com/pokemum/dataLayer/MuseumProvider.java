@@ -10,8 +10,11 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 
 public class MuseumProvider extends ContentProvider {
+
+    private final String LOG_TAG = MuseumProvider.class.getSimpleName();
 
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -242,5 +245,20 @@ public class MuseumProvider extends ContentProvider {
     public void shutdown() {
         mOpenHelper.close();
         super.shutdown();
+    }
+
+    public int getProfilesCount() {
+        String countQuery = "SELECT  * FROM " + MuseumContract.ObraEntry.TABLE_NAME;
+        try {
+            SQLiteDatabase db = mOpenHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery(countQuery, null);
+            int cnt = cursor.getCount();
+            cursor.close();
+            return cnt;
+        } catch (Exception e) {
+            Log.w(LOG_TAG, "Null pointer!!!!!");
+            e.printStackTrace();
+            return 3;
+        }
     }
 }

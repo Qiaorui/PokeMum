@@ -7,9 +7,23 @@
     android:id="@+id/fragment_main"
     >
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="58dp">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Simulate"
+            android:id="@+id/simulate_button"
+            android:layout_gravity="center"
+            android:onClick="click" />
+    </LinearLayout>
+
     <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="170dp"
         android:layout_gravity="center_horizontal"
         android:rowOrderPreserved="false"
         android:useDefaultMargins="false">
@@ -86,11 +100,12 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal|bottom">
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_weight="5">
 
         <com.pokemum.SlideCutListView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="260dp"
             android:id="@+id/slideCutListView"
             android:listSelector="@android:color/transparent"
             android:layout_gravity="center_horizontal|top" />

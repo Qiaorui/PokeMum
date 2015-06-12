@@ -1,17 +1,75 @@
 package com.pokemum;
 
-import android.support.v7.app.ActionBarActivity;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
+import com.pokemum.dataLayer.MuseumContract;
+import com.pokemum.dataLayer.MuseumProvider;
+
+import java.util.Random;
 
 
 public class ShowArtworkActivity extends ActionBarActivity {
+
+    private final Random rand = new Random();
+    private final int MIN_SQLITE_ID = 1;
+    private final String LOG_TAG = ShowArtworkActivity.class.getSimpleName();
+
+    private ContentValues cv;
+    private static final String[] OBRA_COLUMNS = {
+            MuseumContract.ObraEntry._ID,
+            MuseumContract.ObraEntry.COLUMN_TITULO,
+            MuseumContract.ObraEntry.COLUMN_AUTOR,
+            MuseumContract.ObraEntry.COLUMN_ANO_CREACION,
+            MuseumContract.ObraEntry.COLUMN_ESTILO_ARTISTICO,
+            MuseumContract.ObraEntry.COLUMN_TIPO,
+            MuseumContract.ObraEntry.COLUMN_DESCRIPCION
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_artwork);
+
+        int maxSqliteId = new MuseumProvider().getProfilesCount();
+        Log.v(LOG_TAG, "How many arworks in DB => " + new Integer(maxSqliteId).toString());
+
+        //int randomNum = rand.nextInt((maxSqliteId - MIN_SQLITE_ID) + 1) + MIN_SQLITE_ID;
+        int randomNum = 2;
+        String randomNumStr = new Integer(randomNum).toString();
+        Log.v(LOG_TAG, "Random generated artwork => " + randomNumStr);
+
+        Cursor obraCursor = getContentResolver().query(
+                MuseumContract.ObraEntry.CONTENT_URI,
+                OBRA_COLUMNS,
+                MuseumContract.ObraEntry._ID + " = ?",
+                new String[] {randomNumStr},
+                null);
+        if (obraCursor.moveToFirst()) {
+            cv = new ContentValues();
+            DatabaseUtils.cursorRowToContentValues(obraCursor, cv);
+        }
+        obraCursor.close();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        ((TextView)findViewById(R.id.title_textView)).setText(cv.getAsString(MuseumContract.ObraEntry.COLUMN_TITULO));
+        ((TextView)findViewById(R.id.author_textView)).setText(cv.getAsString(MuseumContract.ObraEntry.COLUMN_AUTOR));
+        ((TextView)findViewById(R.id.year_creation_textView)).setText(cv.getAsString(MuseumContract.ObraEntry.COLUMN_ANO_CREACION));
+        ((TextView)findViewById(R.id.style_textView)).setText(cv.getAsString(MuseumContract.ObraEntry.COLUMN_ESTILO_ARTISTICO));
+        ((TextView)findViewById(R.id.type_textView)).setText(cv.getAsString(MuseumContract.ObraEntry.COLUMN_TIPO));
+        ((TextView)findViewById(R.id.description_textView)).setText(cv.getAsString(MuseumContract.ObraEntry.COLUMN_DESCRIPCION));
+
     }
 
     @Override

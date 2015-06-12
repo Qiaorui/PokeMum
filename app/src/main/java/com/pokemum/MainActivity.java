@@ -33,7 +33,6 @@ public class MainActivity extends ActionBarActivity {
     public static final String SYSTEM_INFO = "system info";
     public static final String IS_SIGNED_IN = "is signed-in";
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,8 +76,12 @@ public class MainActivity extends ActionBarActivity {
 
     public void click(View view) {
         switch (view.getId()) {
+            case R.id.simulate_button:
+                Intent intent = new Intent(this, ShowArtworkActivity.class);
+                startActivity(intent);
+                break;
             case R.id.new_artwork_button:
-                Intent intent = new Intent(this, ArtworkActivity.class);
+                intent = new Intent(this, ArtworkActivity.class);
                 intent.putExtra("action","new");
                 startActivity(intent);
                 break;
