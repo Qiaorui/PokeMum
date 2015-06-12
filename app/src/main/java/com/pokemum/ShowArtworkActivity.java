@@ -1,6 +1,7 @@
 package com.pokemum;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.Bundle;
@@ -8,11 +9,14 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.pokemum.dataLayer.MuseumContract;
 import com.pokemum.dataLayer.MuseumProvider;
 
+import java.util.List;
 import java.util.Random;
 
 
@@ -38,12 +42,20 @@ public class ShowArtworkActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_artwork);
 
-        int maxSqliteId = new MuseumProvider().getProfilesCount();
-        Log.v(LOG_TAG, "How many arworks in DB => " + new Integer(maxSqliteId).toString());
+        Button dismiss = (Button) findViewById(R.id.dismiss_button);
+        dismiss.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
+        });
 
-        //int randomNum = rand.nextInt((maxSqliteId - MIN_SQLITE_ID) + 1) + MIN_SQLITE_ID;
-        int randomNum = 2;
-        String randomNumStr = new Integer(randomNum).toString();
+        MuseumProvider mp = new MuseumProvider();
+        List<Integer> ids = mp.getAllIds();
+        int randomNum = rand.nextInt(((ids.size()-1) - MIN_SQLITE_ID) + 1) + MIN_SQLITE_ID;
+
+        String randomNumStr = ids.get(randomNum).toString();
         Log.v(LOG_TAG, "Random generated artwork => " + randomNumStr);
 
         Cursor obraCursor = getContentResolver().query(

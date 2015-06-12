@@ -3,6 +3,7 @@ package com.pokemum.dataLayer;
 /**
  * Created by qiaorui on 4/06/15.
  */
+
 import android.annotation.TargetApi;
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -11,6 +12,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MuseumProvider extends ContentProvider {
 
@@ -52,6 +56,7 @@ public class MuseumProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         mOpenHelper = new MuseumDbHelper(getContext());
+        if (getContext() == null) Log.w(LOG_TAG, "Context is NULL!");
         return true;
     }
 
@@ -247,18 +252,35 @@ public class MuseumProvider extends ContentProvider {
         super.shutdown();
     }
 
-    public int getProfilesCount() {
-        String countQuery = "SELECT  * FROM " + MuseumContract.ObraEntry.TABLE_NAME;
+    public List<Integer> getAllIds() {
+
+        List<Integer> results = new ArrayList<Integer>();
+        final SQLiteDatabase db;
+
         try {
-            SQLiteDatabase db = mOpenHelper.getReadableDatabase();
-            Cursor cursor = db.rawQuery(countQuery, null);
-            int cnt = cursor.getCount();
-            cursor.close();
-            return cnt;
+            db = mOpenHelper.getWritableDatabase();
         } catch (Exception e) {
-            Log.w(LOG_TAG, "Null pointer!!!!!");
+            Log.w(LOG_TAG, "getAllIds => Null pointer!!!!!");
             e.printStackTrace();
-            return 3;
+            results.add(new Integer(1));
+            results.add(new Integer(1));
+            return results;
         }
+
+        String[] columns = {MuseumContract.ObraEntry._ID}; // name of the column
+
+        Cursor cursor = db.query(MuseumContract.ObraEntry.TABLE_NAME, columns, null, null, null, null, null);
+
+        int iId = cursor.getColumnIndex(MuseumContract.ObraEntry._ID);
+
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            Integer rowId = cursor.getInt(0);
+            results.add(rowId);
+        }
+
+        cursor.close();
+        db.close();
+
+        return results;
     }
 }
