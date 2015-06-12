@@ -129,6 +129,7 @@ public class MainActivity extends ActionBarActivity {
             // asked for, which means that we need to know the GMT offset to translate this data
             // properly.
 
+            int res = getContentResolver().delete(MuseumContract.ObraEntry.CONTENT_URI, null, null);
 
             String[] resultStrs = new String[numObras];
             for(int i = 0; i < obrasArray.length(); i++) {
